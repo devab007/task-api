@@ -91,11 +91,4 @@
 		</plugins>
 	</build>
 
-    <repositories>
-        <repository>
-            <id>nexus-releases</id>
-            <url>http://localhost:8081/repository/maven-releases/</url>
-        </repository>
-    </repositories>
-
 </project>

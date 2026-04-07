@@ -1,4 +1,4 @@
-name: CI/CD L3GL Pipeline (Ultimate Fix)
+name: CI/CD L3GL Pipeline
 
 on:
   push:
@@ -24,44 +24,24 @@ jobs:
         with:
           java-version: '17'
           distribution: 'temurin'
+          cache: maven
 
-      # 1. Création d'un settings.xml qui ignore ton Nexus local
-      - name: Create Custom Maven Settings
-        run: |
-          cat <<EOF > settings.xml
-          <settings>
-            <mirrors>
-              <mirror>
-                <id>central-only</id>
-                <mirrorOf>external:*</mirrorOf>
-                <url>https://repo.maven.apache.org/maven2</url>
-              </mirror>
-            </mirrors>
-          </settings>
-          EOF
-
-      # 2. On installe le Core proprement
       - name: Install task-core
         run: |
           cd task-core
-          # On génère un JAR léger et on l'installe
-          mvn clean install -DskipTests -s ../settings.xml
+          mvn clean install -DskipTests -Dspring-boot.repackage.skip=true
 
-      # 3. On build l'API en forçant l'utilisation du Core qu'on vient de compiler
       - name: Build task-api
         run: |
           cd task-api
-          # On utilise -s pour ignorer ton Nexus et on force la version si besoin
-          mvn clean package -DskipTests -s ../settings.xml
+          mvn clean package -DskipTests
 
-      # 4. Connexion Docker Hub
       - name: Login to Docker Hub
         uses: docker/login-action@v3
         with:
           username: ${{ secrets.DOCKERHUB_USERNAME }}
           password: ${{ secrets.DOCKERHUB_TOKEN }}
 
-      # 5. Build et Push
       - name: Build and push Docker image
         run: |
           cd task-api
