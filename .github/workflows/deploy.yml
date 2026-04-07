@@ -1,4 +1,4 @@
-name: CI/CD L3GL Pipeline (Multi-Repo)
+name: CI/CD L3GL Pipeline (Final Fix)
 
 on:
   push:
@@ -8,19 +8,16 @@ jobs:
   build-and-push:
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout task-api (Current Repo)
+      - name: Checkout task-api
         uses: actions/checkout@v4
         with:
           path: task-api
 
-      # ÉTAPE CLÉ : On clone le dépôt task-core à côté de task-api
-      - name: Checkout task-core (Dependency Repo)
+      - name: Checkout task-core
         uses: actions/checkout@v4
         with:
           repository: ${{ github.repository_owner }}/task-core
           path: task-core
-          # Note: Si task-core est PRIVE, il faudra un Personal Access Token (PAT)
-          # token: ${{ secrets.MY_GITHUB_TOKEN }}
 
       - name: Set up JDK 17
         uses: actions/setup-java@v4
@@ -29,26 +26,26 @@ jobs:
           distribution: 'temurin'
           cache: maven
 
-      # 1. On entre dans le dossier cloné du Core et on l'installe dans le .m2 local du runner
-      - name: Install task-core Dependency
+      # 1. On installe le Core normalement (besoin d'internet pour les libs standards)
+      - name: Install task-core
         run: |
           cd task-core
           mvn clean install -DskipTests
 
-      # 2. On compile l'API (qui va maintenant trouver le Core dans le .m2)
-      - name: Build task-api
+      # 2. ÉTAPE CRUCIALE : On build l'API en mode OFFLINE (-o)
+      # Cela force Maven à utiliser le task-core qu'on vient d'installer dans .m2
+      # sans essayer de contacter ton Nexus localhost:8081
+      - name: Build task-api (Offline Mode)
         run: |
           cd task-api
-          mvn clean package -DskipTests
+          mvn clean package -DskipTests -o
 
-      # 3. Connexion au Docker Hub
       - name: Login to Docker Hub
         uses: docker/login-action@v3
         with:
           username: ${{ secrets.DOCKERHUB_USERNAME }}
           password: ${{ secrets.DOCKERHUB_TOKEN }}
 
-      # 4. Build et Push de l'image Docker
       - name: Build and push Docker image
         run: |
           cd task-api
