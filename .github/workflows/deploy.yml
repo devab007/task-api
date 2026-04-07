@@ -1,0 +1,24 @@
+name: CI/CD Pipeline L3GL
+
+on:
+  push:
+    branches: [ "main" ] # Déclenche le pipeline quand tu push sur la branche main
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout du code
+        uses: actions/checkout@v3
+
+      - name: Connexion au Docker Hub
+        uses: docker/login-action@v2
+        with:
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+
+      - name: Build et Push de l'image Docker
+        run: |
+          docker build -t l3gldev/task-api:latest .
+          docker push l3gldev/task-api:latest
