@@ -1,4 +1,4 @@
-name: CI/CD L3GL Pipeline (Final Fix)
+name: CI/CD L3GL Pipeline (The Solution)
 
 on:
   push:
@@ -26,19 +26,22 @@ jobs:
           distribution: 'temurin'
           cache: maven
 
-      # 1. On installe le Core normalement (besoin d'internet pour les libs standards)
       - name: Install task-core
         run: |
           cd task-core
           mvn clean install -DskipTests
 
-      # 2. ÉTAPE CRUCIALE : On build l'API en mode OFFLINE (-o)
-      # Cela force Maven à utiliser le task-core qu'on vient d'installer dans .m2
-      # sans essayer de contacter ton Nexus localhost:8081
-      - name: Build task-api (Offline Mode)
+      - name: Clean Nexus Config from POM
         run: |
           cd task-api
-          mvn clean package -DskipTests -o
+          # Cette commande supprime toute la section <repositories> du pom.xml 
+          # pour forcer Maven à utiliser le dépôt central standard.
+          sed -i '/<repositories>/,/<\/repositories>/d' pom.xml
+
+      - name: Build task-api
+        run: |
+          cd task-api
+          mvn clean package -DskipTests
 
       - name: Login to Docker Hub
         uses: docker/login-action@v3
