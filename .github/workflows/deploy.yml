@@ -1,4 +1,4 @@
-name: CI/CD L3GL Pipeline (The Solution)
+name: CI/CD L3GL Pipeline (Final Fix)
 
 on:
   push:
@@ -26,17 +26,23 @@ jobs:
           distribution: 'temurin'
           cache: maven
 
-      - name: Install task-core
+      - name: Install task-core Dependency
         run: |
           cd task-core
-          mvn clean install -DskipTests
+          mvn clean package -DskipTests
+          # On installe le fichier JAR sous l'identité 0.3.0 demandée par l'API
+          mvn install:install-file \
+            -Dfile=target/task-core-0.6.0.jar \
+            -DgroupId=sn.isi.l3gl.core \
+            -DartifactId=task-core \
+            -Dversion=0.3.0 \
+            -Dpackaging=jar
 
-      - name: Clean Nexus Config from POM
+      - name: Clean Nexus Config
         run: |
           cd task-api
-          # Cette commande supprime toute la section <repositories> du pom.xml 
-          # pour forcer Maven à utiliser le dépôt central standard.
           sed -i '/<repositories>/,/<\/repositories>/d' pom.xml
+          sed -i '/<distributionManagement>/,/<\/distributionManagement>/d' pom.xml
 
       - name: Build task-api
         run: |
