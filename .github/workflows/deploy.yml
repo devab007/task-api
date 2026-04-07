@@ -29,6 +29,7 @@ jobs:
       - name: Install task-core
         run: |
           cd task-core
+          # Le flag -Dspring-boot.repackage.skip est crucial pour que l'API puisse voir les classes
           mvn clean install -DskipTests -Dspring-boot.repackage.skip=true
 
       - name: Build task-api
