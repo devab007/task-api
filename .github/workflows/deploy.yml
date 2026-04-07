@@ -29,10 +29,11 @@ jobs:
       - name: Install task-core Dependency
         run: |
           cd task-core
-          mvn clean package -DskipTests
-          # On cherche le jar généré (peu importe son nom exact) et on l'installe en 0.3.0
+          # On saute le repackage pour avoir un JAR de bibliothèque classique
+          mvn clean install -DskipTests -Dspring-boot.repackage.skip=true
+          
+          # On s'assure qu'il est bien installé sous la version 0.3.0 attendue par l'API
           JAR_PATH=$(ls target/*.jar | head -n 1)
-          echo "Installing $JAR_PATH as version 0.3.0"
           mvn install:install-file \
             -Dfile=$JAR_PATH \
             -DgroupId=sn.isi.l3gl.core \
