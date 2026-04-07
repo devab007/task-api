@@ -29,10 +29,10 @@ jobs:
       - name: Install task-core Dependency
         run: |
           cd task-core
-          # On saute le repackage pour avoir un JAR de bibliothèque classique
-          mvn clean install -DskipTests -Dspring-boot.repackage.skip=true
+          # On utilise mvn compiler:compile et jar:jar pour éviter le format Spring Boot
+          mvn clean compiler:compile jar:jar install -DskipTests
           
-          # On s'assure qu'il est bien installé sous la version 0.3.0 attendue par l'API
+          # On l'injecte proprement dans le repo local GitHub
           JAR_PATH=$(ls target/*.jar | head -n 1)
           mvn install:install-file \
             -Dfile=$JAR_PATH \
